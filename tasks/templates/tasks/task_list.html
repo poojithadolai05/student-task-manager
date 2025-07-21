@@ -1,0 +1,190 @@
+{% extends 'tasks/base.html' %}
+{% load form_tags %}
+{% load time_tags %}
+{% block content %}
+<div class="max-w-5xl mx-auto p-4 space-y-6">
+
+  <!-- 🔍 Filters & Sorting -->
+  <form method="get" class="flex flex-wrap gap-3 items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+    <input
+      type="text"
+      name="search"
+      placeholder="🔍 Search tasks..."
+      value="{{ search|default:'' }}"
+      class="flex-1 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring focus:ring-blue-400"
+    />
+
+    <select name="filter" class="rounded-md border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-sm px-3 py-2 text-gray-800 dark:text-white">
+      <option value="">📂 All</option>
+      <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>🕒 Pending</option>
+      <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>✅ Completed</option>
+    </select>
+
+    <select name="sort" class="rounded-md border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-sm text-gray-800 dark:text-white">
+      <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>🛠 Created</option>
+      <option value="deadline" {% if sort == 'deadline' %}selected{% endif %}>📅 Deadline</option>
+      <option value="priority" {% if sort == 'priority' %}selected{% endif %}>🔥 Priority</option>
+    </select>
+
+    <select name="order" class="rounded-md border dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-sm px-3 py-2 text-gray-800 dark:text-white">
+      <option value="asc" {% if order == 'asc' %}selected{% endif %}>⬆️ Asc</option>
+      <option value="desc" {% if order == 'desc' %}selected{% endif %}>⬇️ Desc</option>
+    </select>
+
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
+      🔄 Apply
+    </button>
+    <a href="{% url 'task_list' %}" class="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white px-4 py-2 rounded-md text-sm">
+      ♻️ Reset
+    </a>
+  </form>
+
+  <!-- 📋 Header -->
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">📋 Your Tasks</h2>
+    <div class="flex gap-2">
+      <a href="{% url 'add_task' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm">➕ Add Task</a>
+      <a href="{% url 'export_tasks' %}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md text-sm">📤 Export CSV</a>
+    </div>
+  </div>
+
+  <!-- 🗂 Task Cards -->
+  <ul class="space-y-4">
+    {% for task in tasks %}
+  <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+
+      <div class="w-full">
+        <p title="{{ task.title }}"
+           class="truncate max-w-full font-medium text-lg {% if task.status == 'completed' %}text-green-600 dark:text-green-300 line-through{% else %}text-gray-800 dark:text-gray-100{% endif %}">
+          {{ task.title }}
+        </p>
+
+        <!-- Priority Badge -->
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          🔥 Priority:
+          {% if task.priority == 'high' %}
+            <span class="text-red-500 font-semibold">High</span>
+          {% elif task.priority == 'medium' %}
+            <span class="text-yellow-500 font-semibold">Medium</span>
+          {% else %}
+            <span class="text-green-500 font-semibold">Low</span>
+          {% endif %}
+        </p>
+
+        <!-- Description -->
+        {% if task.description %}
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 italic">📝 {{ task.description }}</p>
+        {% endif %}
+
+        <!-- Status & Deadline -->
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+          <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full
+            {% if task.status == 'completed' %}
+              bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
+            {% else %}
+              bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300
+            {% endif %}">
+            {{ task.status|title }}
+          </span>
+
+          {% if task.status == 'pending' and task.deadline and task.deadline < now %}
+            <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+              ⚠️ Overdue
+            </span>
+          {% endif %}
+        </div>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          📅 Created: {{ task.created_at|date:"Y-m-d" }} |
+          ⏳ Deadline:
+          {% if task.deadline %}
+            {{ task.deadline|date:"Y-m-d H:i" }}
+          {% else %}
+            Not Set
+          {% endif %}
+        </p>
+        {% if task.status == 'pending' and task.deadline %}
+          <p class="text-xs mt-1 font-medium 
+                    {% if task.deadline > now %} text-blue-600 dark:text-blue-400 
+                    {% else %} text-red-600 dark:text-red-400 {% endif %}">
+            {{ task.deadline|deadline_status }}
+          </p>
+        {% endif %}
+
+            
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-300">
+        {% if task.status == 'pending' %}
+          <a href="{% url 'mark_completed' task.id %}" class="hover:underline">✔️Mark as Completed</a> |
+        {% endif %}
+        <a href="{% url 'update_task' task.id %}" class="hover:underline">✏️ Edit</a> |
+        <button 
+          onclick="openDeleteModal({{ task.id }}, '{{ task.title }}')"
+          class="hover:underline text-red-500 dark:text-red-400">
+          ❌ Delete
+        </button>
+      </div>
+
+    </li>
+    {% empty %}
+    <li class="bg-yellow-50 dark:bg-gray-700 text-center p-4 rounded-md text-gray-700 dark:text-white">
+      🚫 No tasks yet. Start by adding one!
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- ⏭ Pagination -->
+  {% if tasks.paginator.num_pages > 1 %}
+  <div class="flex justify-center mt-6">
+    <div class="inline-flex space-x-2">
+      {% if tasks.has_previous %}
+        <a href="?page={{ tasks.previous_page_number }}" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded">⬅️ Prev</a>
+      {% endif %}
+      <span class="px-3 py-1">{{ tasks.number }} / {{ tasks.paginator.num_pages }}</span>
+      {% if tasks.has_next %}
+        <a href="?page={{ tasks.next_page_number }}" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded">Next ➡️</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 🗑️ Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full">
+    <h2 class="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">Confirm Deletion</h2>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+      Are you sure you want to delete <span id="modalTaskTitle" class="font-semibold"></span>?
+    </p>
+    <div class="flex justify-end gap-3">
+      <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 text-sm">
+        Cancel
+      </button>
+      <form id="deleteForm" method="post" action="">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm">
+          Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openDeleteModal(taskId, title) {
+    const modal = document.getElementById('deleteModal');
+    const titleSpan = document.getElementById('modalTaskTitle');
+    const form = document.getElementById('deleteForm');
+    form.action = `/delete/${taskId}/`;
+    titleSpan.textContent = `"${title}"`;
+    modal.classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+  }
+</script>
+
+{% endblock %}

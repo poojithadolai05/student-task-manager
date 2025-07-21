@@ -1,0 +1,54 @@
+{% extends 'tasks/base.html' %}
+{% load form_tags %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[70vh]">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 space-y-6">
+    <h2 class="text-2xl font-semibold text-center text-gray-800 dark:text-white">🔑 Login to Your Account</h2>
+
+    <!-- 🔴 Form Errors -->
+    {% if form.errors %}
+    <div class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 px-4 py-3 rounded-md text-sm font-medium">
+      <ul class="list-disc list-inside space-y-1">
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- 📝 Login Form -->
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          <label for="{{ field.id_for_label }}" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ field.label }}
+          </label>
+          {{ field|add_classes:"w-full px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+        </div>
+      {% endfor %}
+      <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+  🔓 Login
+</button>
+
+<div class="text-right mt-2">
+  <a href="{% url 'password_reset' %}" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
+    ❓ Forgot Password?
+  </a>
+</div>
+
+    </form>
+
+    <p class="text-sm text-center text-gray-600 dark:text-gray-400">
+      Don’t have an account?
+      <a href="{% url 'register' %}" class="text-blue-600 hover:underline dark:text-blue-400">Register here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

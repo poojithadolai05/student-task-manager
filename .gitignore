@@ -1,0 +1,20 @@
+# Python
+*.pyc
+__pycache__/
+db.sqlite3
+
+# Env
+.env
+.env.*
+
+# Node/Tailwind
+node_modules/
+*.log
+
+# VS Code or IDE
+.vscode/
+
+# Static files generated
+staticfiles/
+
+venv/

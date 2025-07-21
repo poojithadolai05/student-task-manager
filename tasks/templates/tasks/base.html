@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Task Manager</title>
+  {% load static %}
+
+  <!-- Tailwind CSS -->
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Default to dark mode unless light is saved -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || !localStorage.getItem('theme')) {
+      document.documentElement.classList.add('dark');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".flash-message").forEach(msg => {
+        setTimeout(() => {
+          msg.classList.add("opacity-0");
+          setTimeout(() => msg.style.display = "none", 500);
+        }, 4000);
+      });
+    });
+  </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-inter min-h-screen transition-colors duration-300">
+
+  <!-- 🔷 Navbar -->
+  <header class="bg-white dark:bg-gray-800 shadow px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <h1 class="text-xl font-bold text-blue-600 dark:text-blue-400">📘 Student Task Manager</h1>
+
+    <div class="flex items-center space-x-4 text-sm">
+      {% if user.is_authenticated %}
+        <span class="hidden sm:inline text-gray-700 dark:text-gray-300 font-medium">👋 Hi, {{ user.username }}</span>
+        <a href="{% url 'profile' %}" class="hover:underline">👤 Profile</a>
+        <a href="{% url 'account_settings' %}" class="hover:underline">⚙️ Settings</a>
+      {% endif %}
+      <button id="theme-toggle" class="ml-2 px-3 py-1 rounded bg-gray-200 dark:bg-gray-600 text-sm">
+        🌙 Dark Mode
+      </button>
+    </div>
+  </header>
+
+  <!-- ✅ Flash Messages -->
+  {% if messages %}
+    <div class="max-w-4xl mx-auto mt-4 px-4">
+      {% for message in messages %}
+        <div class="flash-message {{ message.tags }} px-4 py-3 rounded-md shadow mb-3 text-sm font-medium transition duration-500
+          {% if message.tags == 'success' %}
+            bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
+          {% elif message.tags == 'error' %}
+            bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
+          {% else %}
+            bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100
+          {% endif %}
+        ">
+          {{ message }}
+          <span class="float-right cursor-pointer text-xl" onclick="this.parentElement.style.display='none'">&times;</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- 🌐 Main Content -->
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+    <!-- 🌗 Theme Toggle Script -->
+  <script>
+    const toggleBtn = document.getElementById("theme-toggle");
+    const html = document.documentElement;
+
+    toggleBtn?.addEventListener("click", () => {
+      const isDark = html.classList.contains("dark");
+      if (isDark) {
+        html.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+        toggleBtn.innerText = "🌙 Dark Mode";
+      } else {
+        html.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+        toggleBtn.innerText = "☀️ Light Mode";
+      }
+    });
+
+    // On page load
+    if (localStorage.getItem("theme") === "dark" || !localStorage.getItem("theme")) {
+      html.classList.add("dark");
+      document.getElementById("theme-toggle").innerText = "☀️ Light Mode";
+    } else {
+      html.classList.remove("dark");
+      document.getElementById("theme-toggle").innerText = "🌙 Dark Mode";
+    }
+  </script>
+
+</body>
+</html>

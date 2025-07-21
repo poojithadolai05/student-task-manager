@@ -1,0 +1,96 @@
+{% extends 'tasks/base.html' %}
+{% load form_tags %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[70vh]">
+  <div class="w-full max-w-xl bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 space-y-6">
+
+    <h2 class="text-2xl font-semibold text-center text-gray-800 dark:text-gray-100">
+      {% if form.instance.pk %}✏️ Update Task{% else %}📝 Add Task{% endif %}
+    </h2>
+
+    <!-- ✅ Success Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-4 py-3 rounded-md text-sm font-medium">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- ❌ Error Messages -->
+    {% if form.errors %}
+      <div class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 px-4 py-3 rounded-md text-sm font-medium">
+        <ul class="list-disc list-inside space-y-1">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- 📝 Task Form -->
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      <!-- Title -->
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+        {{ form.title|add_classes:"w-full px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+        {{ form.description|add_classes:"w-full px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+      </div>
+
+      <!-- Priority -->
+      <div>
+        <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priority</label>
+        {{ form.priority|add_classes:"w-full px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+      </div>
+
+      <!-- Deadline -->
+      <div>
+        <label for="{{ form.deadline.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Deadline</label>
+        {{ form.deadline|add_classes:"w-full px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+      </div>
+
+
+      <button type="submit"
+              class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+        {% if form.instance.pk %}💾 Update{% else %}💾 Save{% endif %}
+      </button>
+    </form>
+
+  </div>
+</div>
+
+<!-- 📅 JS to prevent selecting past deadlines -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const dateInput = document.querySelector('input[type="datetime-local"]');
+
+    if (dateInput) {
+      function updateMinDateTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Adjust for local timezone
+        const isoNow = now.toISOString().slice(0, 16);
+        dateInput.min = isoNow;
+      }
+
+      // Initial set
+      updateMinDateTime();
+
+      // 🕒 Optional: Update min every minute in case user leaves form open
+      setInterval(updateMinDateTime, 60000);
+    }
+  });
+</script>
+
+{% endblock %}
