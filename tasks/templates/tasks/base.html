@@ -68,22 +68,41 @@
   <main class="max-w-4xl mx-auto px-4 py-8">
     {% block content %}{% endblock %}
   </main>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const toggles = document.querySelectorAll(".toggle-visibility");
 
-    toggles.forEach(toggle => {
-      toggle.addEventListener("click", function () {
-        const input = document.getElementById(this.dataset.target);
-        if (input) {
-          const isPassword = input.getAttribute("type") === "password";
-          input.setAttribute("type", isPassword ? "text" : "password");
-          this.textContent = isPassword ? "🙈" : "👁️";
-        }
+  {% block scripts %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const passwordFields = document.querySelectorAll("input[type='password']");
+
+      passwordFields.forEach((field) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "relative";
+
+        // Apply margin for eye icon space
+        field.classList.add("pr-10");
+
+        // Move field into wrapper
+        field.parentNode.insertBefore(wrapper, field);
+        wrapper.appendChild(field);
+
+        // Create the toggle eye icon
+        const toggle = document.createElement("span");
+        toggle.textContent = "👁️";
+        toggle.className =
+          "absolute inset-y-0 right-2 flex items-center cursor-pointer text-gray-600 dark:text-gray-300";
+
+        // Toggle password visibility
+        toggle.addEventListener("click", function () {
+          const type = field.getAttribute("type") === "password" ? "text" : "password";
+          field.setAttribute("type", type);
+          toggle.textContent = type === "password" ? "👁️" : "🙈";
+        });
+
+        wrapper.appendChild(toggle);
       });
     });
-  });
-</script>
+  </script>
+  {% endblock %}
 
     <!-- 🌗 Theme Toggle Script -->
   <script>
